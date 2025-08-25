@@ -142,57 +142,11 @@
   line-height: 1.5;
 }
 
-#Frame_1321316708 { --faq-maxh: 600px; }
-
-
-/* Курсор + плавная ротация стрелки */
-#Frame_1321316708 [id^="Frame_1321316707"] { cursor:pointer; }
-#Frame_1321316708 [id^="weui_arrow_filled"] svg,
-#Frame_1321316708 [id^="weui_arrow_filled_"] svg {
-  transition:transform .25s ease;
-}
-
-
-/* Под Soyuz Grotesk (если уже подключён) */
-#Frame_1321316708 { font-family:"Soyuz Grotesk", sans-serif; }
-#Frame_1321316708 [id^="_136_707"],
-#Frame_1321316708 [id^="_136_716"],
-#Frame_1321316708 [id^="_136_723"],
-#Frame_1321316708 [id^="_136_730"],
-#Frame_1321316708 [id^="_136_737"] {
-  font-weight:600;
-  letter-spacing:.2px;
-}
-
-#Frame_1321316708 .faq-answer-block {
-  display: none;                          /* hidden by default */
-  width: calc(100% - 80px);
-  margin: 12px 40px 24px 40px;            /* same left/right as your cards */
-  color: #E5E5E5;
-  font: 400 18px/1.5 "Soyuz Grotesk", "Actay", system-ui, sans-serif;
-  white-space: normal;
-  overflow-wrap: anywhere;
-}
-
-/* a subtle divider above each visible answer (optional) */
-#Frame_1321316708 .faq-answer-block::before {
-  content: "";
-  display: block;
-  height: 1px;
-  border-top: 1px solid #3d3d3d;
-  margin-bottom: 12px;
-}
-
-/* rotate the arrow when its question is open (optional) */
-#Frame_1321316708 [id^="Frame_1321316670_"].open [id^="weui_arrow_filled"] svg,
-#Frame_1321316708 #Frame_1321316698.open [id^="weui_arrow_filled"] svg,
-#Frame_1321316708 #Frame_1321316699.open [id^="weui_arrow_filled"] svg,
-#Frame_1321316708 #Frame_1321316700.open [id^="weui_arrow_filled"] svg,
-#Frame_1321316708 #Frame_1321316701.open [id^="weui_arrow_filled"] svg {
-  transform: rotate(180deg);
-  transition: transform .2s ease;
-}
-
+#Frame_1321316708 .faq-answer-block{display:none;width:calc(100% - 80px);margin:12px 40px 24px;color:#E5E5E5;font:400 18px/1.5 "Soyuz Grotesk","Actay",system-ui,sans-serif}
+#Frame_1321316708 .faq-answer-block::before{content:"";display:block;height:1px;border-top:1px solid #3d3d3d;margin-bottom:12px}
+#Frame_1321316708 [id^="Frame_1321316707"]{cursor:pointer}
+#Frame_1321316708 [id^="weui_arrow_filled"] svg,#Frame_1321316708 [id^="weui_arrow_filled_"] svg{transition:transform .25s ease}
+#Frame_1321316708 .open [id^="weui_arrow_filled"] svg,#Frame_1321316708 .open [id^="weui_arrow_filled_"] svg{transform:rotate(180deg)}
 
 </style>
 </head><body id="_">
@@ -1100,14 +1054,13 @@
   </span></span>
 </div>
        
-      <div id="Frame_1321316698">
-        <div id="Frame_1321316707_0">
-          <div id="Frame_1321316670_2">
-            <span id="_136_716" class="pointer-events-none"><span id="__199" class="text">Насколько легально Р2Р?&nbsp;</span></span>
-          </div>
-          <div id="Line_2_0" class="pointer-events-none">
-          </div>
-          <div id="weui_arrow_filled_0">
+     <div id="Frame_1321316698" class="faq-row">
+  <div id="Frame_1321316707_0" role="button" tabindex="0" aria-expanded="false">
+    <div id="Frame_1321316670_2">
+      <span id="_136_716" class="pointer-events-none"><span id="__199" class="text">Насколько легально Р2Р?</span></span>
+    </div>
+    <div id="Line_2_0" class="pointer-events-none"></div>
+    <div id="weui_arrow_filled_0">
 <svg preserveAspectRatio="none" id="Vector_22" class="pointer-events-none" width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.7547 13.2746L0.854904 3.37489L3.3294 0.900391L11.9919 9.56289L20.6544 0.900391L23.1289 3.37489L13.2292 13.2746C12.901 13.6027 12.4559 13.787 11.9919 13.787C11.5279 13.787 11.0828 13.6027 10.7547 13.2746Z" fill="#F6E7C5"></path></svg>
           </div>
         </div>
@@ -1381,60 +1334,40 @@
   if (root.dataset.faqInit === '1') return;
   root.dataset.faqInit = '1';
 
-  // Находим все вопросы
   const rows = [
     ...root.querySelectorAll(
-      '[id^="Frame_1321316670_"], ' +
-      '#Frame_1321316698, #Frame_1321316699, #Frame_1321316700, #Frame_1321316701'
+      '[id^="Frame_1321316670_"],' +
+      '#Frame_1321316698,#Frame_1321316699,#Frame_1321316700,#Frame_1321316701'
     )
   ];
 
-  // Всем даём общий класс
-  rows.forEach(r => r.classList.add('faq-row'));
+  const closeRow = (r) => {
+    r.classList.remove('open');
+    const a = r.nextElementSibling;
+    if (a?.classList.contains('faq-answer-block')) a.style.display = 'none';
+    const h = r.querySelector('[id^="Frame_1321316707"]');
+    if (h) h.setAttribute('aria-expanded', 'false');
+  };
 
   rows.forEach((row) => {
     const header = row.querySelector('[id^="Frame_1321316707"]');
     if (!header) return;
 
-    // Ответ блоком сразу после вопроса
     let answer = row.nextElementSibling;
-    if (!answer || !answer.classList.contains('faq-answer-block')) {
-      answer = document.createElement('div');
-      answer.className = 'faq-answer-block';
-      row.after(answer);
-    }
+    if (!answer || !answer.classList.contains('faq-answer-block')) return;
 
-    // Перемещаем старый inline-ответ внутрь блока
-    const legacy = row.querySelector(':scope > span[id^="_136_"]');
-    if (legacy && !answer.contains(legacy)) {
-      legacy.style.all = 'unset';
-      legacy.style.display = 'block';
-      const txt = legacy.querySelector('.text');
-      if (txt) { txt.style.all = 'unset'; txt.style.display = 'inline'; }
-      answer.appendChild(legacy);
-    }
-
-    header.setAttribute('role', 'button');
-    header.setAttribute('tabindex', '0');
-    header.setAttribute('aria-expanded', 'false');
-
-    const openRow = () => {
-      row.classList.add('open');
-      answer.style.display = 'block';
-      header.setAttribute('aria-expanded', 'true');
-    };
-    const closeRow = (r) => {
-      r.classList.remove('open');
-      const a = r.nextElementSibling;
-      if (a && a.classList.contains('faq-answer-block')) a.style.display = 'none';
-      const h = r.querySelector('[id^="Frame_1321316707"]');
-      if (h) h.setAttribute('aria-expanded', 'false');
-    };
+    header.setAttribute('role','button');
+    header.setAttribute('tabindex','0');
+    header.setAttribute('aria-expanded','false');
 
     const toggle = () => {
       const isOpen = row.classList.contains('open');
       rows.forEach(closeRow);
-      if (!isOpen) openRow();
+      if (!isOpen) {
+        row.classList.add('open');
+        answer.style.display = 'block';
+        header.setAttribute('aria-expanded','true');
+      }
     };
 
     header.addEventListener('click', toggle);
@@ -1443,12 +1376,8 @@
     });
   });
 
-  // Все закрыты по умолчанию
-  rows.forEach((r) => {
-    r.classList.remove('open');
-    const a = r.nextElementSibling;
-    if (a && a.classList.contains('faq-answer-block')) a.style.display = 'none';
-  });
+  // старт — усе закрито
+  rows.forEach(closeRow);
 })();
 </script>
 </body></html>
