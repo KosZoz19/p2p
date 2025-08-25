@@ -142,11 +142,60 @@
   line-height: 1.5;
 }
 
-#Frame_1321316708 .faq-answer-block{display:none;width:calc(100% - 80px);margin:12px 40px 24px;color:#E5E5E5;font:400 18px/1.5 "Soyuz Grotesk","Actay",system-ui,sans-serif}
-#Frame_1321316708 .faq-answer-block::before{content:"";display:block;height:1px;border-top:1px solid #3d3d3d;margin-bottom:12px}
-#Frame_1321316708 [id^="Frame_1321316707"]{cursor:pointer}
-#Frame_1321316708 [id^="weui_arrow_filled"] svg,#Frame_1321316708 [id^="weui_arrow_filled_"] svg{transition:transform .25s ease}
-#Frame_1321316708 .open [id^="weui_arrow_filled"] svg,#Frame_1321316708 .open [id^="weui_arrow_filled_"] svg{transform:rotate(180deg)}
+/* ===== FAQ: уніфікований вигляд карток ===== */
+#Frame_1321316708 .faq-row{
+  -webkit-backdrop-filter:blur(15px)!important;
+  backdrop-filter:blur(15px)!important;
+  background-color:#ffffff0d!important;
+  border-radius:30px!important;
+  display:flex!important;
+  flex-flow:column!important;
+  justify-content:center!important;
+  align-items:flex-start!important;
+  row-gap:15px!important;
+  width:100%!important;
+  margin:0!important;
+  padding:30px 0 30px 40px!important;
+  position:relative!important;
+  overflow:hidden!important;
+}
+
+/* сам «хедер» питання — горизонтальний ряд */
+#Frame_1321316708 [id^="Frame_1321316707"]{
+  display:flex!important;
+  align-items:center!important;
+  gap:40px!important;
+  margin:0!important;
+  padding:0!important;
+  border-radius:0!important;
+  flex-flow:row!important;
+  cursor:pointer!important;
+}
+
+/* блок відповіді (регенеруємо під кожним питанням) */
+#Frame_1321316708 .faq-answer-block{
+  display:none!important;
+  width:calc(100% - 80px)!important;
+  margin:12px 40px 24px 40px!important;
+  color:#E5E5E5!important;
+  font:400 18px/1.5 "Soyuz Grotesk","Actay",system-ui,sans-serif!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+#Frame_1321316708 .faq-answer-block::before{
+  content:"";
+  display:block;
+  height:1px;
+  border-top:1px solid #3d3d3d;
+  margin-bottom:12px;
+}
+
+/* плавна ротація стрілки тільки у відкритої картки */
+#Frame_1321316708 .faq-row.open [id^="weui_arrow_filled"] svg,
+#Frame_1321316708 .faq-row.open [id^="weui_arrow_filled_"] svg{
+  transform:rotate(180deg);
+  transition:transform .25s ease;
+}
 
 </style>
 </head><body id="_">
@@ -1054,13 +1103,14 @@
   </span></span>
 </div>
        
-     <div id="Frame_1321316698" class="faq-row">
-  <div id="Frame_1321316707_0" role="button" tabindex="0" aria-expanded="false">
-    <div id="Frame_1321316670_2">
-      <span id="_136_716" class="pointer-events-none"><span id="__199" class="text">Насколько легально Р2Р?</span></span>
-    </div>
-    <div id="Line_2_0" class="pointer-events-none"></div>
-    <div id="weui_arrow_filled_0">
+      <div id="Frame_1321316698">
+        <div id="Frame_1321316707_0">
+          <div id="Frame_1321316670_2">
+            <span id="_136_716" class="pointer-events-none"><span id="__199" class="text">Насколько легально Р2Р?&nbsp;</span></span>
+          </div>
+          <div id="Line_2_0" class="pointer-events-none">
+          </div>
+          <div id="weui_arrow_filled_0">
 <svg preserveAspectRatio="none" id="Vector_22" class="pointer-events-none" width="24" height="14" viewBox="0 0 24 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.7547 13.2746L0.854904 3.37489L3.3294 0.900391L11.9919 9.56289L20.6544 0.900391L23.1289 3.37489L13.2292 13.2746C12.901 13.6027 12.4559 13.787 11.9919 13.787C11.5279 13.787 11.0828 13.6027 10.7547 13.2746Z" fill="#F6E7C5"></path></svg>
           </div>
         </div>
@@ -1328,46 +1378,104 @@
     </div>
   </div>
 <script>
-(() => {
-  const root = document.querySelector('#Frame_1321316708');
-  if (!root) return;
-  if (root.dataset.faqInit === '1') return;
+(function () {
+  const root = document.getElementById('Frame_1321316708');
+  if (!root || root.dataset.faqInit === '1') return;
   root.dataset.faqInit = '1';
 
-  const rows = [
-    ...root.querySelectorAll(
-      '[id^="Frame_1321316670_"],' +
-      '#Frame_1321316698,#Frame_1321316699,#Frame_1321316700,#Frame_1321316701'
-    )
-  ];
-
-  const closeRow = (r) => {
-    r.classList.remove('open');
-    const a = r.nextElementSibling;
-    if (a?.classList.contains('faq-answer-block')) a.style.display = 'none';
-    const h = r.querySelector('[id^="Frame_1321316707"]');
-    if (h) h.setAttribute('aria-expanded', 'false');
+  // допоміжник: ставимо інлайн-стилі з !important
+  const cssImportant = (el, map) => {
+    for (const k in map) el.style.setProperty(k, map[k], 'important');
   };
 
-  rows.forEach((row) => {
+  // беремо ВСІ прямі дочірні DIV усередині секції з «шапкою» питання
+  const rows = Array.from(root.children)
+    .filter(el => el.tagName === 'DIV' && el.querySelector('[id^="Frame_1321316707"]'));
+
+  rows.forEach(row => {
+    // однаковий вигляд картки
+    cssImportant(row, {
+      '-webkit-backdrop-filter': 'blur(15px)',
+      'backdrop-filter': 'blur(15px)',
+      'background-color': '#ffffff0d',
+      'border-radius': '30px',
+      'display': 'flex',
+      'flex-flow': 'column',
+      'justify-content': 'center',
+      'align-items': 'flex-start',
+      'row-gap': '15px',
+      'width': '100%',
+      'margin': '0',
+      'padding': '30px 0 30px 40px',
+      'position': 'relative',
+      'overflow': 'hidden'
+    });
+    row.classList.add('faq-row');
+
     const header = row.querySelector('[id^="Frame_1321316707"]');
     if (!header) return;
 
-    let answer = row.nextElementSibling;
-    if (!answer || !answer.classList.contains('faq-answer-block')) return;
+    // вид шапки
+    cssImportant(header, {
+      'display': 'flex',
+      'align-items': 'center',
+      'gap': '40px',
+      'margin': '0',
+      'padding': '0',
+      'border-radius': '0',
+      'flex-flow': 'row',
+      'cursor': 'pointer'
+    });
 
-    header.setAttribute('role','button');
-    header.setAttribute('tabindex','0');
-    header.setAttribute('aria-expanded','false');
+    // блок відповіді — наступний сусід
+    let answer = row.nextElementSibling;
+    if (!answer || !answer.classList.contains('faq-answer-block')) {
+      answer = document.createElement('div');
+      answer.className = 'faq-answer-block';
+      row.after(answer);
+    }
+
+    // переносимо «стару» відповідь (якщо вона була всередині картки)
+    const legacy = row.querySelector(':scope > span[id^="_136_"]');
+    if (legacy && !answer.contains(legacy)) {
+      legacy.style.all = 'unset';
+      legacy.style.display = 'block';
+      const t = legacy.querySelector('.text');
+      if (t) { t.style.all = 'unset'; t.style.display = 'inline'; }
+      answer.appendChild(legacy);
+    }
+
+    // arrow для ротації (може бути з різними id)
+    const arrowSvg = header.querySelector(
+      '[id^="weui_arrow_filled"] svg, [id^="weui_arrow_filled_"] svg'
+    );
+
+    const closeRow = (r) => {
+      r.classList.remove('open');
+      const a = r.nextElementSibling;
+      if (a && a.classList.contains('faq-answer-block')) {
+        a.style.setProperty('display', 'none', 'important');
+      }
+      const h = r.querySelector('[id^="Frame_1321316707"]');
+      if (h) h.setAttribute('aria-expanded', 'false');
+      const s = r.querySelector('[id^="weui_arrow_filled"] svg,[id^="weui_arrow_filled_"] svg');
+      if (s) s.style.setProperty('transform', 'rotate(0deg)', 'important');
+    };
+
+    const openRow = () => {
+      row.classList.add('open');
+      answer.style.setProperty('display', 'block', 'important');
+      header.setAttribute('aria-expanded', 'true');
+      if (arrowSvg) {
+        arrowSvg.style.setProperty('transition', 'transform .25s ease', 'important');
+        arrowSvg.style.setProperty('transform', 'rotate(180deg)', 'important');
+      }
+    };
 
     const toggle = () => {
       const isOpen = row.classList.contains('open');
-      rows.forEach(closeRow);
-      if (!isOpen) {
-        row.classList.add('open');
-        answer.style.display = 'block';
-        header.setAttribute('aria-expanded','true');
-      }
+      rows.forEach(closeRow);   // акордеон
+      if (!isOpen) openRow();
     };
 
     header.addEventListener('click', toggle);
@@ -1376,8 +1484,14 @@
     });
   });
 
-  // старт — усе закрито
-  rows.forEach(closeRow);
+  // старт: все закрито
+  rows.forEach(r => {
+    r.classList.remove('open');
+    const a = r.nextElementSibling;
+    if (a && a.classList.contains('faq-answer-block')) {
+      a.style.setProperty('display', 'none', 'important');
+    }
+  });
 })();
 </script>
 </body></html>
